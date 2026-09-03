@@ -1,21 +1,8 @@
-# QCDNUM fork for fragmentation function (FF) evolution studies
+# QCDNUM fork for fragmentation function evolution 
 
-This is a working copy of **QCDNUM 18.00.00**, used as the base for studying
-and evolving fragmentation functions (FF). It is not the official QCDNUM
-repository — see attribution below.
+Working copy of [QCDNUM](https://www.nikhef.nl/~h24/qcdnum/) used for evolving fragmentation functions (FF). 
 
-## What this is
-
-[QCDNUM](https://www.nikhef.nl/~h24/qcdnum/) is a fast QCD evolution and
-convolution library written by M. Botje. It solves the DGLAP evolution
-equations for parton distributions (space-like) and fragmentation functions
-(time-like), and provides fast convolution engines for structure functions
-and related observables.
-
-This repo starts from the unmodified QCDNUM 18.00.00 source and adds custom
-test jobs to evolve specific fragmentation functions.
-
-## Attribution
+This repo starts from the unmodified QCDNUM 18.00.00 source and include scripts to evolve specific fragmentation functions.
 
 QCDNUM is developed and maintained by M. Botje. If you use QCDNUM, please
 cite:
@@ -24,7 +11,9 @@ cite:
 
 Original source and documentation: https://www.nikhef.nl/~h24/qcdnum/
 
-## Custom work
+
+
+## Fragmentation function evolution
 
 `testjobs/kkD0.f`, `kkD0.cpp`, `kkD0_scan.f` — time-like (fragmentation
 function) evolution of the Kniehl-Kramer D0 meson fragmentation function at
