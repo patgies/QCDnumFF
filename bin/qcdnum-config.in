@@ -1,0 +1,46 @@
+#! /usr/bin/env bash
+
+# These variables need to exist
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+
+if [[ $# -eq 0 || -n $( echo $* | egrep -- "--help|-h" ) ]]; then
+    echo
+    echo "qcdnum-config: configuration tool for QCDNUM"
+    echo
+    echo "Usage:      qcdnum-config [option]"
+    echo
+    echo "Options: --help | -h : show this help message"
+    echo "         --prefix    : get the installation prefix"
+    echo "         --libdir    : get the path to the QCDNUM library"
+    echo "         --incdir    : get the path to the QCDNUM include files"
+    echo "         --ldflags   : get the linker flags"
+    echo "         --cppflags  : get the c++ flags"
+    echo "         --version   : get the QCDNUM  version number"
+    echo
+    echo "Website:   http://www.nikhef.nl/user/h24/qcdnum"
+    echo
+fi
+
+OUT=""
+
+tmp=$( echo "$*" | egrep -- '--\<prefix\>')
+test -n "$tmp" && OUT="$OUT @prefix@"
+
+tmp=$( echo "$*" | egrep -- '--\<libdir\>')
+test -n "$tmp" && OUT="$OUT @libdir@"
+
+tmp=$( echo "$*" | egrep -- '--\<incdir\>')
+test -n "$tmp" && OUT="$OUT @includedir@"
+
+tmp=$( echo "$*" | egrep -- '--\<ldflags\>')
+test -n "$tmp" && OUT="$OUT -L@libdir@ -lQCDNUM"
+
+tmp=$( echo "$*" | egrep -- '--\<cppflags\>')
+test -n "$tmp" && OUT="$OUT -I@includedir@"
+
+## Version
+tmp=$( echo "$*" | egrep -- '--\<version\>')
+test -n "$tmp" && OUT="$OUT @PACKAGE_VERSION@"
+
+echo $OUT

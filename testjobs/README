@@ -1,0 +1,35 @@
+
+This is the file qcdnum-18-00-00/testjobs/README
+
+The following test programs are available in the directory testjobs:
+
+example.f|cc     Simple evolution program as described in Section 4.2
+                 of the writeup. Good starting point to develop your
+                 own application code.
+exampledc.f      Same program but now driven by data cards.
+testsgns.f|cc    EVSGNS singlet/non-singlet evolution and compare to EVOLSG.
+getgluon.f|cc    Gluon from the different interpolation routines.
+pdfsets.f|cc     Play around with different pdf sets in memory.
+testzmstf.f|cc   Calculate structure functions with the ZMSTF package.
+testhqstf.f|cc   Calculate heavy flavour contributions with the HQSTF
+                 package. Here we calculate F2b and FLb from pdfs which
+                 are evolved with nf = 3 flavours, which is wrong because
+                 it should be nf = 4 flavours. But for a testjob that's OK.
+timing.f|cc      1000 evolutions and, for each evolution, 1000 F2 and
+                 FL calculations at NNLO in the VFNS. This is to see how
+                 long it takes.
+convolit.f       Calculate (double) convolutions with the slow and
+                 fast convolution engine, and compare the results with
+                 that from straight-forward Gauss integration.
+ftwo.f|cc        Calculate LO or NLO F2 structure function using the
+                 fast convolution engine and compare the result to ZMSTF.
+                 Good starting point to write your own structure function
+                 routines like polarised structure functions, for instance.
+longlist.f       Use the fast convolution engine to interpolate an
+                 arbitrary long list of pdfs. Shows how to circumvent the
+                 mpt0 restriction on the number of interpolations.
+SGevolution.f    Does singlet/gluon evolution with the evolution toolbox
+                 and compares the result with the standard evolution.
+wspace.f|cc      Some code examples from the WSTORE memory manager write-up.
+
+inputpdfCxx.h    Include file with input pdfs for all testjobs.

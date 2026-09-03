@@ -1,0 +1,7 @@
+  
+ MBUTIL version history
+ ----------------------
+
+ 27-04-16    MBUTIL06    Fix bug in SMB_POLWGT
+ 27-01-16    MBUTIL05    Add fast interpolation routines
+ 27-03-15    MBUTIL04    Add string formatter routines

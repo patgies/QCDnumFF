@@ -1,0 +1,1455 @@
+
+C--  This is the file istore.f with istore routines
+C--  This file also contains C++ wrappers for all the Fortran routines
+
+C--   smb_IwInit(iw,nw)             Create istore
+C--   smbIwEbuf(iw,txt,opt)         Handle message text buffer
+C--   smbIwEmsg(iw,n,srname)        Out-of-space error message
+C--   smb_SetIwn(iw,nw)             Update istore size info
+C--   imb_Iarray(iw,imi,ima)        Create new array(imi:ima)
+C--   imb_IAread(iw,iarr,n)         Create array(1:n) and read iarr
+C--   imb_DAread(iw,darr,n)         Create array(1:n) and read int(darr)
+C--
+C--   imb_Ihsize()                  Return header size
+C--   imb_IsaIstore(iw)             Yes/no iw is an istore
+C--   imb_IwSize(iw)                Total size of iw
+C--   imb_IwNused(iw)               Words used in iw
+C--   imb_IwNarrays(iw)             Number of arrays in iw
+C--   imb_IwNheader(iw)             Header size
+C--   imb_IwObjectType(iw,ia)       Object type
+C--   imb_IwAsize(iw,ia)            Array size
+C--   imb_IwAnumber(iw,ia)          Array number
+C--   imb_IwAfprint(iw,ia)          Fingerprint of root or array
+C--   imb_IwAdim(iw,ia)             Array dimension
+C--   imb_IwAimin(iw,ia)            Imin of array
+C--   imb_IwAimax(iw,ia)            Imax of array
+C--   imb_IaAbegin(iw,ia)           Ia begin body
+C--   imb_IaAend(iw,ia)             Ia end body
+C--   imb_IwKnul(iw,ia)             K0 pointer coefficient
+C--   imb_AiAddr(iw,ia,i)           Ia element A(i)
+
+C--   smb_IWtree(iw)                Print istore tree
+C--   smbIWtree(iw,iroot)           Print istore tree
+C--   smbiwprnt(iw,ia,iroot)        Print istore summary line
+C--   smbaprint(iw,ia,iroot)        Print array  summary line
+C--   smb_IWhead(iw,ia)             Print header
+
+
+C-----------------------------------------------------------------------
+CXXHDR
+CXXHDR    /************************************************************/
+CXXHDR    /*  MBUTIL istore routines from istore.f                    */
+CXXHDR    /************************************************************/
+CXXHDR
+CXXHDR    // alrady defined in file wspace.f
+CXXHDR    // inline int iaFtoC(int ia) { return ia-1; };
+CXXHDR    // inline int iaCtoF(int ia) { return ia+1; };
+CXXHDR
+C-----------------------------------------------------------------------
+CXXHFW
+CXXHFW  /**************************************************************/
+CXXHFW  /*  MBUTIL istore routines from istore.f                      */
+CXXHFW  /**************************************************************/
+CXXHFW
+C-----------------------------------------------------------------------
+CXXWRP
+CXXWRP  /**************************************************************/
+CXXWRP  /*  MBUTIL istore routines from istore.f                      */
+CXXWRP  /**************************************************************/
+CXXWRP
+C-----------------------------------------------------------------------
+
+C-----------------------------------------------------------------------
+CXXHDR    void smb_iwinit(int *iw, int nw, string txt);
+C-----------------------------------------------------------------------
+CXXHFW  #define fsmb_iwinitcpp FC_FUNC(smb_iwinitcpp,SMB_IWINITCPP)
+CXXHFW    void fsmb_iwinitcpp(int*, int*, char*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    void smb_iwinit(int *iw, int nw, string txt)
+CXXWRP    {
+CXXWRP      int ls = txt.size();
+CXXWRP      char *ctxt = new char[ls];
+CXXWRP      strcpy(ctxt,txt.c_str());
+CXXWRP      fsmb_iwinitcpp(iw, &nw, ctxt, &ls);
+CXXWRP      delete[] ctxt;
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ======================================
+      subroutine smb_IwInitCPP(iw,nw,txt,ls)
+C     ======================================
+
+      implicit double precision (a-h,o-z)
+
+      dimension iw(*)
+      character*(100) txt
+
+      if(ls.gt.100) stop
+     +             'MBUTIL::SMB_IWINIT: input text > 100 characters'
+
+      call smb_IwInit(iw,nw,txt(1:ls))
+
+      return
+      end
+
+C     ================================
+      subroutine smb_IwInit(iw,nw,txt)
+C     ================================
+
+C--   Create new istore
+C--
+C--   iw  (in): integer array iw(nw)
+C--   nw  (in): dimension of iw declared in calling routine
+
+C--   Author: Michiel Botje h24@nikhef.nl   30-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      character*(*) txt
+      character*10  date, time, zone
+      dimension     ival(8)
+      character*20  ntxt
+
+      save icnt
+      data icnt /0/
+
+C--   Check input
+      if(nw.le.0) stop
+     + 'MBUTIL:SMB_IWINIT: cannot have istore size NW <= 0'
+C--   Check size
+      nhead  = nwHeader1
+      nsize  = nhead
+      nneed  = nsize + 1
+      if(nw.lt.nneed) then
+        call smb_itoch(nneed,ntxt,leng)
+        write(6,*)
+     + 'MBUTIL:IMB_IWINIT: workspace size must be at least ',
+     +  ntxt(1:leng),' words'
+        if(imb_lastc(txt).ne.0) write(6,*) txt
+        stop
+      endif
+C--   Istore fingerprint
+      call date_and_time(date,time,zone,ival)      !millisec resolution
+      icnt  = icnt+1                               !count calls
+      iseed = 0                                    !call-dependent seed
+      do i = 1,4
+        call smb_cbyte(mod(icnt+i,256),1,iseed,i)  !set 4 bytes of iseed
+      enddo
+      ihash = imb_ihash(iseed,ival,8)              !hash year-date-time
+C--   Initialise istore
+      call smb_Ifill(iw,nw,0)
+C--   Workspace header
+      iw(ICword1+iroot0) = iWsVersion0             !Control word
+      iw(IwAddr1+iroot0) = 0                       !IW address
+      iw(NFTabl1+iroot0) = 0                       !Fskip table
+      iw(NBTabl1+iroot0) = 0                       !Bskip table
+      iw(Ifprnt1+iroot0) = ihash                   !Fingerprint
+      iw(INwUse1+iroot0) = nsize                   !Words used
+      iw(NObjec1+iroot0) = 0                       !Number of objects
+      iw(IWlstT1+iroot0) = nhead                   !IW last table in w
+      iw(INwMax1+iroot0) = nw                      !Istore total size
+      iw(INhead1+iroot0) = nhead                   !Header size
+C--   Store message
+      call smbIwEbuf(iw,txt,'in')
+
+      return
+      end
+
+C     ================================
+      subroutine smbIwEbuf(iw,txt,opt)
+C     ================================
+
+C--   Store (opt = 'in') or retrieve (opt = 'out') message text
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+      character*(*) txt, opt
+
+      save ebuf, ifp, nebuf, first
+      character*80 ebuf(mebuf0)
+      dimension ifp(mebuf0)
+      logical first
+      data first/.true./
+
+C--   Initialise
+      if(first) then
+        nebuf = 0
+        do i = 1,mebuf0
+          call smb_cfill(' ',ebuf(i))
+          ifp(i) = 0
+        enddo
+        first = .false.
+      endif
+
+C--   Workspace fingerprint
+      ifpw = int(iw(IFprnt1+iroot0))
+C--   Find workspace entry
+      iws  = 0
+      do i = 1,nebuf
+        if(ifp(i).eq.ifpw) iws = i
+      enddo
+      if(opt(1:1).eq.'i' .or. opt(1:1).eq.'I') then
+C--     Store new message
+C--     Empty message
+        if(imb_lastc(txt).eq.0) return
+        if(iws.ne.0) then
+C--       Overwrite
+          ebuf(iws) = txt
+        else
+C--       New entry
+          nebuf = nebuf+1
+          if(nebuf.gt.mebuf0) then
+            write(6,*) 'MBUTIL:SMB_IWINIT: message buffer size exceeded'
+            write(6,*)
+     +                'Please increase MEBUF0 in mbutil/inc/wspace0.inc'
+            stop
+          endif
+          ebuf(nebuf) = txt
+          ifp(nebuf)  = ifpw
+        endif
+      elseif(opt(1:1).eq.'o' .or. opt(1:1).eq.'O') then
+C--     Retrieve message
+        if(iws.eq.0) then
+C--       Workspace not found
+          call smb_cfill(' ',txt)
+        else
+          txt = ebuf(iws)
+        endif
+      else
+        stop 'MBUTIL:smbIwEbuf: unknown option'
+      endif
+
+      return
+      end
+
+C     =================================
+      subroutine smbIwEmsg(iw,n,srname)
+C     =================================
+
+C--   Out-of-space message
+
+      implicit double precision(a-h,o-z)
+
+      dimension iw(*)
+      character*(*) srname
+      character*20  ntxt
+      character*80  txt
+
+      i1 = imb_frstc(srname)
+      i2 = imb_lastc(srname)
+      call smb_itoch(n,ntxt,leng)
+      call smbIwEbuf(iw,txt,'out')
+      write(6,*) srname(i1:i2),': workspace size must be at least ',
+     +  ntxt(1:leng),' words'
+      if(imb_lastc(txt).ne.0) write(6,*) txt
+      stop
+
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    void smb_setiwn(int *iw, int nw);
+C-----------------------------------------------------------------------
+CXXHFW  #define fsmb_setiwn FC_FUNC(smb_setiwn,SMB_SETIWN)
+CXXHFW    void fsmb_setiwn(int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    void smb_setiwn(int *iw, int nw)
+CXXWRP    {
+CXXWRP     fsmb_setiwn(iw, &nw);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ============================
+      subroutine smb_SetIwn(iw,nw)
+C     ============================
+
+C--   Update size information in the istore header
+C--
+C--   iw              (in): istore
+C--   nw              (in): actual istore size
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+C--   Check if workspace
+      if(iw(iCword1+iroot0).ne.iWsVersion0) then
+        stop 'MBUTIL:SMB_SETIWN: IW is not an istore'
+      endif
+C--   Check input
+      nwold = iw(INwMax1+iroot0)
+      if(nw.lt.nwold) stop
+     +               'MBUTIL:SMB_SETIWN: cannot decrease istore size'
+C--   Update header
+      iw(INwMax1+iroot0) = nw                    !Istore total size
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_iarray(int* iw, int imi, int ima);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iarray FC_FUNC(imb_iarray,IMB_IARRAY)
+CXXHFW    int fimb_iarray(int*, int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_iarray(int* iw, int imi, int ima)
+CXXWRP    {
+CXXWRP     int ia = fimb_iarray(iw, &imi, &ima);
+CXXWRP     return iaFtoC(ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     =======================================
+      integer function imb_Iarray(iw,imi,ima)
+C     =======================================
+
+C--   Book new array
+C--
+C--   iw          (in): istore
+C--   imi,ima     (in): index limits
+C--   imb_Iarray (out): IA address of the new array
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*), karr(0:1), imin(1), imax(1), ival(1)
+
+C--   Check if workspace
+      if(iw(iCword1+iroot0).ne.iWsVersion0) then
+        stop 'MBUTIL:IMB_IARRAY: IW is not an istore'
+      endif
+C--   Check input and get array size
+      if(imi.gt.ima) stop 'MBUTIL:IMB_IARRAY: imin > imax'
+      nw = ima-imi+1
+C--   Addresses
+      iaR    = iroot0                             !root address
+      iaL    = iw(IWlstT1+iaR) + iaR              !IA current table
+      iaT    = iw(INwUse1+iaR) + iaR              !IA new table
+      NBskip = iaL-iaT                            !Bskip table
+C--   Check workspace size
+      NHskip = iw(INhead1+iaR)                    !header size
+      NWused = iw(INwUse1+iaR)                    !words used
+      NTsize = nw + NHskip                        !table size
+      NWneed = NWused + NTsize + 1                !words needed
+      Nspace = iw(INwMax1+iaR)                    !total size
+C--   Run out-of-space
+      if(NWneed.gt.Nspace) call smbIwEmsg(iw,NWneed,'MBUTIL:IMB_IARRAY')
+C--   Initialise
+      do i = iaT,NWneed
+        iw(i) = 0
+      enddo
+C--   Array definition
+      imin(1) = imi
+      imax(1) = ima
+      ittb1   = NHskip
+      call smb_bkmat(imin,imax,karr,1,ittb1,ittb2)
+      if(ittb2.ne.NTsize-1) stop
+     +                     'MBUTIL:IMB_IARRAY: problem with table size'
+C--   Array fingerprint
+      ival(1) = 1
+      ihash   = imb_ihash(0    ,ival,1)
+      ihash   = imb_ihash(ihash,karr,2)
+      ihash   = imb_ihash(ihash,imin,1)
+      ihash   = imb_ihash(ihash,imax,1)
+C--   Number of arrays in iw
+      NObjec  = iw(NObjec1+iaR) + 1               !number of arrays
+C--   Fill array header
+      iw(ICword1+iaT) = iCWTable0                 !control word
+      iw(IwAddr1+iaT) = NWused                    !IW
+      iw(NFTabl1+iaT) = 0                         !Fskip array
+      iw(NBTabl1+iaT) = NBskip                    !Bskip array
+      iw(Ifprnt1+iaT) = ihash                     !fingerprint
+      iw(INwUse1+iaT) = NTsize                    !array size
+      iw(IObjec1+iaT) = NObjec                    !array number
+      iw(KnulTb1+iaT) = karr(0)                   !k0 value
+      iw(IminTb1+iaT) = imi                       !Imin
+      iw(ImaxTb1+iaT) = ima                       !Imax
+      iw(ItBody1+iaT) = ittb1                     !IT begin body
+      iw(ItBend1+iaT) = ittb2                     !IT end body
+C--   Update istore header
+      iw(NFTabl1+iaR) = NHskip                    !Fskip
+      iw(INwUse1+iaR) = NWused+NTsize             !Words used
+      iw(NObjec1+iaR) = NObjec                    !number of arrays
+      iw(IWlstT1+iaR) = NWused                    !IW this table
+C--   Return address
+      imb_Iarray = iaT
+C--   Done for first array
+      if(NBskip.eq.0) return
+C--   Update Header previous array
+      iw(NFTabl1+iaL) = iaT - iaL                 !Fskip table
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_iaread(int* iw, int* iarr, int n);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iaread FC_FUNC(imb_iaread,IMB_IAREAD)
+CXXHFW    int fimb_iaread(int*, int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_iaread(int* iw, int* iarr, int n)
+CXXWRP    {
+CXXWRP     int ia = fimb_iaread(iw, iarr, &n);
+CXXWRP     return iaFtoC(ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ======================================
+      integer function imb_IAread(iw,iarr,n)
+C     ======================================
+
+C--   Create array(1:n) and read iarr
+C--
+C--   iw          (in): istore
+C--   iarr        (in): integer array to read in
+C--   imb_IAread (out): IA address of the new array(1:n)
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+C--   Check if workspace
+      if(iw(iCword1+iroot0).ne.iWsVersion0) then
+        stop 'MBUTIL:IMB_IAREAD: IW is not an istore'
+      endif
+C--   Check input
+      if(n.le.0) stop 'MBUTIL:IMB_IAREAD: n must be > 0'
+C--   Check workspace size
+      iaR    = iroot0                             !root address
+      NHskip = iw(INhead1+iaR)                    !header size
+      NWused = iw(INwUse1+iaR)                    !words used
+      NTsize = n + NHskip                         !table size
+      NWneed = NWused + NTsize + 1                !words needed
+      Nspace = iw(INwMax1+iaR)                    !total size
+C--   Run out-of-space
+      if(NWneed.gt.Nspace) call smbIwEmsg(iw,NWneed,'MBUTIL:IMB_IAREAD')
+C--   Book new array
+      iaT = imb_Iarray(iw,1,n)
+C--   Copy
+      ia1 = imb_IaAbegin(iw,iaT)
+      call smb_Icopy(iarr,iw(ia1),n)
+C--   Done ...
+      imb_IAread = iaT
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_daread(int* iw, double* darr, int n);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_daread FC_FUNC(imb_daread,IMB_DAREAD)
+CXXHFW    int fimb_daread(int*, double*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_daread(int* iw, double* darr, int n)
+CXXWRP    {
+CXXWRP     int ia = fimb_daread(iw, darr, &n);
+CXXWRP     return iaFtoC(ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ======================================
+      integer function imb_DAread(iw,darr,n)
+C     ======================================
+
+C--   Create array(1:n) and read int(darr)
+C--
+C--   iw          (in): istore
+C--   darr        (in): double precision array to read in
+C--   imb_DAread (out): IA address of the new array(1:n)
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+C--   Check if workspace
+      if(iw(iCword1+iroot0).ne.iWsVersion0) then
+        stop 'MBUTIL:IMB_DAREAD: IW is not an istore'
+      endif
+C--   Check input
+      if(n.le.0) stop 'MBUTIL:IMB_DAREAD: n must be > 0'
+C--   Check workspace size
+      iaR    = iroot0                             !root address
+      NHskip = iw(INhead1+iaR)                    !header size
+      NWused = iw(INwUse1+iaR)                    !words used
+      NTsize = n + NHskip                         !table size
+      NWneed = NWused + NTsize + 1                !words needed
+      Nspace = iw(INwMax1+iaR)                    !total size
+C--   Run out-of-space
+      if(NWneed.gt.Nspace) call smbIwEmsg(iw,NWneed,'MBUTIL:IMB_DAREAD')
+C--   Book new array
+      iaT = imb_Iarray(iw,1,n)
+C--   Copy
+      ia1 = imb_IaAbegin(iw,iaT)
+      call smb_VDtoI(darr,iw(ia1),n)
+C--   Done ...
+      imb_DAread = iaT
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    void smb_iwwipe(int* iw, int ia);
+C-----------------------------------------------------------------------
+CXXHFW  #define fsmb_iwwipe FC_FUNC(smb_iwwipe,SMB_IWWIPE)
+CXXHFW    void fsmb_iwwipe(int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    void smb_iwwipe(int* iw, int ia)
+CXXWRP    {
+CXXWRP     fsmb_iwwipe(iw, &ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ============================
+      subroutine smb_IwWipe(iw,ia)
+C     ============================
+
+C--   Wipe iw starting at ia
+
+C--   Author: Michiel Botje h24@nikhef.nl   02-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+C--   Check input
+      if(iw(iroot0).ne.iWsVersion0) stop
+     +                        'MBUTIL:SMB_IWWIPE: IW is not an istore'
+      if(ia.le.0 .or. ia.gt.iw(INwUse1+iroot0)) stop
+     +                        'MBUTIL:SMB_IWWIPE: IA out of range'
+
+      iaR    = iroot0                              !Root address
+      iaT    = iw(NFTabl1+iaR) + iaR               !First array address
+      narrs  = iw(NObjec1+iaR)                     !Number of arrays
+      nwuse  = iw(INwUse1+iaR)                     !Words used
+      nwmax  = iw(INwMax1+iaR)                     !Total size
+      nhead  = iw(INhead1+iaR)                     !Header size
+
+      if(narrs.eq.0) then
+C--     empty istore
+        return
+      elseif(ia.eq.iaR .or. ia.eq.iaT) then
+C--     ia = root or first array
+        nsize           = nhead                    !Size after wipe
+        iw(NFTabl1+iaR) = 0                        !Fskip table
+        iw(INwUse1+iaR) = nsize                    !Words used
+        iw(NObjec1+iaR) = 0                        !Number of objects
+        iw(IWlstT1+iaR) = nhead                    !IW last table in w
+        call smb_Ifill(iw(nsize+1),nwmax-nsize,0)  !Wipe
+
+      elseif(iw(iCword1+ia).ne.iCWTable0) then
+C--     ia is not an array address
+        stop 'MBUTIL:SMB_IWWIPE: IA is not an array address'
+
+      else
+C--     ia is array address but not of first array
+        iaT   = iw(NBTabl1+ia) + ia                !Last arr after wipe
+        nsize = ia-1                               !Size after wipe
+        narrs = iw(IObjec1+iaT)                    !Nb arrays after wipe
+        iw(NFTabl1+iaT) = 0                        !Forward skip
+        iw(INwUse1+iaR) = nsize                    !Words used
+        iw(NObjec1+iaR) = narrs                    !Number of objects
+        iw(IWlstT1+iaR) = iaT-iaR                  !IW last table in w
+        call smb_Ifill(iw(nsize+1),nwmax-nsize,0)  !Wipe
+
+      endif
+
+      return
+      end
+
+C=======================================================================
+C==   Access to information ============================================
+C=======================================================================
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_ihsize();
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_ihsize FC_FUNC(imb_ihsize,IMB_IHSIZE)
+CXXHFW    int fimb_ihsize();
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_ihsize()
+CXXWRP    {
+CXXWRP     return fimb_ihsize();
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     =============================
+      integer function imb_Ihsize()
+C     =============================
+
+C--   Return header size
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      imb_Ihsize = nwHeader0
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR
+CXXHDR    int imb_IsaIstore(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW
+CXXHFW  #define fimb_isaistore FC_FUNC(imb_isaistore,IMB_ISAISTORE)
+CXXHFW    int fimb_isaistore(int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IsaIstore(int *obj)
+CXXWRP    {
+CXXWRP     int  ia = *(obj+1);
+CXXWRP     int *iw = obj-ia;
+CXXWRP     return fimb_isaistore(iw);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IsaIstore(iw)
+C     ==================================
+
+C--   Return 1 (0) if iw is (not) an istore
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      if(iw(iCword0+iroot0).eq.iWsVersion0) then
+        imb_IsaIstore = 1
+      else
+        imb_IsaIstore = 0
+      endif
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwSize(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwsize FC_FUNC(imb_iwsize,IMB_IWSIZE)
+CXXHFW    int fimb_iwsize(int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwSize(int *obj)
+CXXWRP    {
+CXXWRP     int  ia = *(obj+1);
+CXXWRP     int *iw = obj-ia;
+CXXWRP     return fimb_iwsize(iw);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ===============================
+      integer function imb_IwSize(iw)
+C     ===============================
+
+C--   Total size of iw
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwSize = iw(iNwMax1+iroot0)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwNused(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwnused FC_FUNC(imb_iwnused,IMB_IWNUSED)
+CXXHFW    int fimb_iwnused(int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwNused(int *obj)
+CXXWRP    {
+CXXWRP     int  ia = *(obj+1);
+CXXWRP     int *iw = obj-ia;
+CXXWRP     return fimb_iwnused(iw);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ================================
+      integer function imb_IwNused(iw)
+C     ================================
+
+C--   Words used in iw (without trailer)
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwNused = iw(INwUse1+iroot0)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwNarrays(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwnarrays FC_FUNC(imb_iwnarrays,IMB_IWNARRAYS)
+CXXHFW    int fimb_iwnarrays(int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwNarrays(int *obj)
+CXXWRP    {
+CXXWRP     int  ia = *(obj+1);
+CXXWRP     int *iw = obj-ia;
+CXXWRP     return fimb_iwnarrays(iw);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IwNarrays(iw)
+C     ==================================
+
+C--   Number of arrays in iw
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwNarrays = iw(NObjec1+iroot0)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IaLastObj(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_ialastobj FC_FUNC(imb_ialastobj,IMB_IALASTOBJ)
+CXXHFW    int fimb_ialastobj(int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IaLastObj(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = fimb_ialastobj(iw);
+CXXWRP     return iaFtoC(ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IaLastObj(iw)
+C     ==================================
+
+C--   Address of last object in iw
+
+C--   Author: Michiel Botje h24@nikhef.nl   02-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      iaR  = iroot0                           !Root address
+      nobj = iw(NObjec1+iaR)                  !Number of arrays
+      if(nobj.eq.0) then
+        imb_IaLastObj = iaR                   !Return root when iw empty
+      else
+        imb_IaLastObj = iw(IWlstT1+iaR) + iaR !Return ia of last array
+      endif
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwNheader(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwnheader FC_FUNC(imb_iwnheader,IMB_IWNHEADER)
+CXXHFW    int fimb_iwnheader(int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwNheader(int *obj)
+CXXWRP    {
+CXXWRP     int  ia = *(obj+1);
+CXXWRP     int *iw = obj-ia;
+CXXWRP     return fimb_iwnheader(iw);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IwNheader(iw)
+C     ==================================
+
+C--   Header size
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwNheader = iw(INhead1+iroot0)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwObjectType(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwobjecttype FC_FUNC(imb_iwobjecttype,IMB_IWOBJECTTYPE)
+CXXHFW    int fimb_iwobjecttype(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwObjectType(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwobjecttype(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ========================================
+      integer function imb_IwObjectType(iw,ia)
+C     ========================================
+
+C--   Return object type
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      if(iw(ICword1+ia).eq.iWsVersion0)     then
+        imb_IwObjectType = 1
+      elseif(iw(ICword1+ia).eq.iCWTable0)   then
+        imb_IwObjectType = 2
+      else
+        imb_IwObjectType = 0
+      endif
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwAsize(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwasize FC_FUNC(imb_iwasize,IMB_IWASIZE)
+CXXHFW    int fimb_iwasize(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwAsize(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwasize(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ===================================
+      integer function imb_IwAsize(iw,ia)
+C     ===================================
+
+C--   Return array size
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwAsize = iw(INwUse1+ia)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwAnumber(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwanumber FC_FUNC(imb_iwanumber,IMB_IWANUMBER)
+CXXHFW    int fimb_iwanumber(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwAnumber(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwanumber(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     =====================================
+      integer function imb_IwAnumber(iw,ia)
+C     =====================================
+
+C--   Return array number
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwAnumber = iw(IObjec1+ia)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwAfprint(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwafprint FC_FUNC(imb_iwafprint,IMB_IWAFPRINT)
+CXXHFW    int fimb_iwafprint(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwAfprint(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwafprint(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     =====================================
+      integer function imb_IwAfprint(iw,ia)
+C     =====================================
+
+C--   Return fingerprint of root or array
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwAfprint = iw(IFprnt1+ia)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwAdim(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwadim FC_FUNC(imb_iwadim,IMB_IWADIM)
+CXXHFW    int fimb_iwadim(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwAdim(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwadim(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IwAdim(iw,ia)
+C     ==================================
+
+C--   Return K0 pointer coefficient
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imi        = iw(IminTb1+ia)
+      ima        = iw(ImaxTb1+ia)
+      imb_IwAdim = ima-imi+1
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwAimin(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwaimin FC_FUNC(imb_iwaimin,IMB_IWAIMIN)
+CXXHFW    int fimb_iwaimin(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwAimin(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwaimin(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ===================================
+      integer function imb_IwAimin(iw,ia)
+C     ===================================
+
+C--   Return imin of array
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwAimin = iw(IminTb1+ia)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwAimax(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwaimax FC_FUNC(imb_iwaimax,IMB_IWAIMAX)
+CXXHFW    int fimb_iwaimax(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwAimax(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwaimax(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ===================================
+      integer function imb_IwAimax(iw,ia)
+C     ===================================
+
+C--   Return imax of array
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwAimax = iw(ImaxTb1+ia)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IaAbegin(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iaabegin FC_FUNC(imb_iaabegin ,IMB_IAABEGIN)
+CXXHFW    int fimb_iaabegin(int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IaAbegin(int *obj)
+CXXWRP    {
+CXXWRP     int  ja   = *(obj+1);
+CXXWRP     int *iw   = obj-ja;
+CXXWRP     int  ia   = iaCtoF(ja);
+CXXWRP     int iak   = fimb_iaabegin(iw, &ia);
+CXXWRP     return iaFtoC(iak);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ====================================
+      integer function imb_IaAbegin(iw,ia)
+C     ====================================
+
+C--   First word of array body
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IaAbegin = iw(ItBody1+ia)+ia
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IaAend(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iaaend FC_FUNC(imb_iaaend ,IMB_IAAEND)
+CXXHFW    int fimb_iaaend(int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IaAend(int *obj)
+CXXWRP    {
+CXXWRP     int  ja   = *(obj+1);
+CXXWRP     int *iw   = obj-ja;
+CXXWRP     int  ia   = iaCtoF(ja);
+CXXWRP     int iak   = fimb_iaaend(iw, &ia);
+CXXWRP     return iaFtoC(iak);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IaAend(iw,ia)
+C     ==================================
+
+C--   Last word of array body
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IaAend = iw(ItBend1+ia)+ia
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_IwKnul(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_iwknul FC_FUNC(imb_iwknul,IMB_IWKNUL)
+CXXHFW    int fimb_iwknul(int*,int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_IwKnul(int *obj)
+CXXWRP    {
+CXXWRP     int  ja = *(obj+1);
+CXXWRP     int *iw = obj-ja;
+CXXWRP     int  ia = iaCtoF(ja);
+CXXWRP     return fimb_iwknul(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ==================================
+      integer function imb_IwKnul(iw,ia)
+C     ==================================
+
+C--   Return K0 pointer coefficient
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_IwKnul = iw(KnulTb1+ia)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    int imb_AiAddr(int *obj, int i);
+C-----------------------------------------------------------------------
+CXXHFW  #define fimb_aiaddr FC_FUNC(imb_aiaddr ,IMB_AIADDR)
+CXXHFW    int fimb_aiaddr(int*, int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    int imb_AiAddr(int *obj, int i)
+CXXWRP    {
+CXXWRP     int  ja   = *(obj+1);
+CXXWRP     int *iw   = obj-ja;
+CXXWRP     int  ia   = iaCtoF(ja);
+CXXWRP     int iak   = fimb_aiaddr(iw, &ia, &i);
+CXXWRP     return iaFtoC(iak);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ====================================
+      integer function imb_AiAddr(iw,ia,i)
+C     ====================================
+
+C--   Address of array(i)
+
+C--   Author: Michiel Botje h24@nikhef.nl   01-02-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      imb_AiAddr = iw(KnulTb1+ia)+ia+i
+
+      return
+      end
+
+
+C=======================================================================
+C==  Verbose dumps  ====================================================
+C=======================================================================
+
+C-----------------------------------------------------------------------
+CXXHDR    void smb_iwtree(int *iw);
+C-----------------------------------------------------------------------
+CXXHFW  #define fsmbiwtree FC_FUNC(smbiwtree ,SMBIWTREE)
+CXXHFW    int fsmbiwtree(int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    void smb_iwtree(int *iw)
+CXXWRP    {
+CXXWRP     int iroot    = 0;
+CXXWRP     fsmbiwtree(iw,&iroot);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     =========================
+      subroutine smb_IWtree(iw)
+C     =========================
+
+C--   Print istore tree
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+      call smbIWtree(iw,1)
+
+      return
+      end
+
+C     ===============================
+      subroutine  smbIWtree(iw,iroot)
+C     ===============================
+
+C--   The iroot argumant takes care of the address printouts
+C--   Fortran iroot = 1 --> print address as is
+C--   C++     iroot = 0 --> substract 1 from all addresses
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+C--   Check input
+      if(iw(iroot0).ne.iWsVersion0) stop
+     +                        'MBUTIL:SMB_IWTREE: IW is not an istore'
+      if(iroot.ne.0 .and. iroot.ne.1) stop
+     +                        'MBUTIL:SMB_IWTREE: iroot must be 0 or 1'
+
+      ia = 1                                 !address of istore
+      call smbiwprnt(iw,ia,iroot)            !print istore
+      jd = iw(NFTabl1+ia)                    !distance to first array
+      do while(jd.ne.0)                      !loop over arrays
+        ia = ia+jd                           !address of array
+        call smbaprint(iw,ia,iroot)          !print array
+        jd = iw(NFTabl1+ia)                  !distance to next array
+      enddo                                  !end loop over arrays
+
+      return
+      end
+
+C     =================================
+      subroutine smbiwprnt(iw,ia,iroot)
+C     =================================
+
+C--   The iroot argumant takes care of the address printouts
+C--   Fortran iroot = 1 --> print address as is
+C--   C++     iroot = 0 --> substract 1 from all addresses
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+      character*15 number, hcode
+      character*80 text
+
+C--   Check input address
+      if(iw(ia).ne.iWsVersion0) stop
+     +                  'MBUTIL:SMB_IWTREE: IA is not an istore address'
+
+      iadr  = ia-iroot0+iroot
+      nwds  = iw(INwUse1+ia)
+      ifpt  = iw(IFprnt1+ia)
+      nobj  = iw(NObjec1+ia)
+      call smb_itoch(nobj,number,leng)
+      call smb_hcode(ifpt,hcode)
+      call smb_cfill(' ',text)
+      text = 'istore with '//number(1:leng)//' arrays'
+      ltxt = imb_lastc(text)
+
+      write(6,'(/1X,''ADDRESS'',4X,''SIZE'',8X,''FINGERPRINT'',
+     +           4X,''OBJECT'')')
+      write(6,'(2I8,4X,A15,4X,A)') iadr, nwds, hcode, text(1:ltxt)
+
+      return
+      end
+
+C     =================================
+      subroutine smbaprint(iw,ia,iroot)
+C     =================================
+
+C--   The iroot argumant takes care of the address printouts
+C--   Fortran iroot = 1 --> print address as is
+C--   C++     iroot = 0 --> substract 1 from all addresses
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+      character*15 number, hcode
+      character*80 text
+
+C--   Check input address
+      if(iw(ia).ne.iCWTable0) stop
+     +                   'MBUTIL:SMB_IWTREE: IA is not an array address'
+
+      iadr  = ia-iroot0+iroot
+      nwds  = iw(INwUse1+ia)
+      ifpt  = iw(IFprnt1+ia)
+      iab1  = iw(ItBody1+ia)
+      iab2  = iw(ItBend1+ia)
+      nelm  = iab2 - iab1 + 1
+      call smb_itoch(nelm,number,leng)
+      call smb_hcode(ifpt,hcode)
+      call smb_cfill(' ',text)
+      text = ' array with '//number(1:leng)//' elements'
+      ltxt = imb_lastc(text)
+
+      write(6,'(2I8,4X,A15,4X,A)') iadr, nwds, hcode, text(1:ltxt)
+
+      return
+      end
+
+C-----------------------------------------------------------------------
+CXXHDR    void smb_iwhead(int *obj);
+C-----------------------------------------------------------------------
+CXXHFW  #define fsmb_iwhead FC_FUNC(smb_iwhead ,SMB_IWHEAD)
+CXXHFW    int fsmb_iwhead(int*, int*);
+C-----------------------------------------------------------------------
+CXXWRP  //--------------------------------------------------------------
+CXXWRP    void smb_iwhead(int *obj)
+CXXWRP    {
+CXXWRP     int ja    = *(obj+1);
+CXXWRP     int *iw   = obj-ja;
+CXXWRP     int ia    = iaCtoF(ja);
+CXXWRP     fsmb_iwhead(iw,&ia);
+CXXWRP    }
+C-----------------------------------------------------------------------
+
+C     ============================
+      subroutine smb_IWhead(iw,ia)
+C     ============================
+
+C--   Print header of istore, table-set or table
+
+C--   Author: Michiel Botje h24@nikhef.nl   31-01-21
+
+      implicit double precision (a-h,o-z)
+
+      include 'wspace0.inc'
+
+      dimension iw(*)
+
+C--   Check input
+      if(iw(iroot0).ne.iWsVersion0) stop
+     +                        'MBUTIL:SMB_IWHEAD: IW is not an istore'
+      if(ia.le.0 .or. ia.gt.iw(INwUse1+iroot0)) stop
+     +                        'MBUTIL:SMB_IWHEAD: IA out of range'
+
+      if(iw(ia).eq.iWsVersion0) then
+         write(6,'(/'' Istore Header'')')
+         write(6,'( '' 0 Cword    '',I15  )') iw(ICword1+ia)
+         write(6,'( '' 1 IW       '',I15  )') iw(IwAddr1+ia)
+         write(6,'( '' 2 TFskip   '',I15  )') iw(NFTabl1+ia)
+         write(6,'( '' 3 TBskip   '',I15  )') iw(NBTabl1+ia)
+         write(6,'( '' 4 Fprint   '',I15  )') iw(IFprnt1+ia)
+         write(6,'( '' 5 NWused   '',I15  )') iw(INwUse1+ia)
+         write(6,'( '' 6 Nobj     '',I15  )') iw(NObjec1+ia)
+         write(6,'( '' 7 IW Ltab  '',I15  )') iw(IWlstT1+ia)
+         write(6,'( '' 8 NWtotal  '',I15  )') iw(iNwMax1+ia)
+         write(6,'( '' 9 Nheader  '',I15  )') iw(INhead1+ia)
+       elseif(iw(ia).eq.iCWTable0) then
+         write(6,'(/'' Array Header'')')
+         write(6,'( '' 0 Cword    '',I15  )') iw(ICword1+ia)
+         write(6,'( '' 1 IW       '',I15  )') iw(IwAddr1+ia)
+         write(6,'( '' 2 TFskip   '',I15  )') iw(NFTabl1+ia)
+         write(6,'( '' 3 TBskip   '',I15  )') iw(NBTabl1+ia)
+         write(6,'( '' 4 Fprint   '',I15  )') iw(IFprnt1+ia)
+         write(6,'( '' 5 NWused   '',I15  )') iw(INwUse1+ia)
+         write(6,'( '' 6 Iobj     '',I15  )') iw(IObjec1+ia)
+         write(6,'( '' 7 K0       '',I15  )') iw(KnulTb1+ia)
+         write(6,'( '' 8 Imin     '',I15  )') iw(IminTb1+ia)
+         write(6,'( '' 9 Imax     '',I15  )') iw(ImaxTb1+ia)
+         write(6,'( ''10 IT Bbody '',I15  )') iw(ItBody1+ia)
+         write(6,'( ''11 IT Ebody '',I15  )') iw(ItBend1+ia)
+      else
+         stop 'MBUTIL:SMB_IWHEAD: IA is not a root or array address'
+      endif
+
+      return
+      end
+
+
+

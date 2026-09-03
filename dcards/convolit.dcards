@@ -1,0 +1,9 @@
+
+' SETLUN   6                                 '
+' GXMAKE   3  100  5  1.D-5 0.2 0.4 0.6 0.75 '
+' GQMAKE       60  2  2.    1.D4             '
+' FILLWT   1  ../weights/unpolarised.wgt     '
+' SETORD   2                                 '
+' SETALF   0.364  2.                         '
+' SETCBT   0      7.  25.   1000.            '
+' EVPARS   1      5.                         '

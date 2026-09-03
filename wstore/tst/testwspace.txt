@@ -1,0 +1,248 @@
+
+bash> ./runtest testwspace.f 
+
+ WSTORE version =   20211117
+  
+ =============== init workspace ======================
+  
+ =============== add 1st table  ======================
+  
+ =============== add 2nd table  ======================
+  
+ =============== add 2nd tbset  ======================
+  
+ =============== add 3rd table  ======================
+  
+ =============== add 4th table  ======================
+
+ Workspace Header
+ 0 Cword          920210714
+ 1 IW                     0
+ 2 TFskip                44
+ 3 TBskip                 0
+ 4 SFskip                22
+ 5 SBskip                 0
+ 6 Fprint       -1670807996
+ 7 Nobj                   2
+ 8 Iobj                   1
+ 9 NWused               286
+10 IW Lset              154
+11 IW Ltab              231
+12 NWtotal              573
+13 Drain        0.00000E+00
+14 Null         0.10000E+21
+
+ Table-set Header
+ 0 Cword          987654321
+ 1 IW                    22
+ 2 TFskip                22
+ 3 TBskip                 0
+ 4 SFskip               132
+ 5 SBskip                 0
+ 6 Fprint        -961980859
+ 7 Nobj                   2
+ 8 Iobj                   1
+ 9 NWused               132
+10 Hsize                 15
+11 TagSize                7
+12 Hskip                 22
+13 IS Ltab               77
+
+ Table Header
+ 0 Cword          123456789
+ 1 IW                    44
+ 2 TFskip                55
+ 3 TBskip                 0
+ 4 SFskip               110
+ 5 SBskip               -22
+ 6 Fprint        -351641929
+ 7 Nobj                   0
+ 8 Iobj                   1
+ 9 NWused                55
+10 IT Meta               22
+11 IT IMIN               26
+12 IT IMAX               28
+13 IT Bbody              30
+14 IT Ebody              54
+
+ Table Header
+ 0 Cword          123456789
+ 1 IW                    99
+ 2 TFskip                 0
+ 3 TBskip               -55
+ 4 SFskip                55
+ 5 SBskip               -77
+ 6 Fprint        -351641929
+ 7 Nobj                   0
+ 8 Iobj                   2
+ 9 NWused                55
+10 IT Meta               22
+11 IT IMIN               26
+12 IT IMAX               28
+13 IT Bbody              30
+14 IT Ebody              54
+
+ Table-set Header
+ 0 Cword          987654321
+ 1 IW                   154
+ 2 TFskip                22
+ 3 TBskip               -55
+ 4 SFskip                 0
+ 5 SBskip              -132
+ 6 Fprint        -961980859
+ 7 Nobj                   2
+ 8 Iobj                   2
+ 9 NWused               132
+10 Hsize                 15
+11 TagSize                7
+12 Hskip                 22
+13 IS Ltab               77
+
+ Table Header
+ 0 Cword          123456789
+ 1 IW                   176
+ 2 TFskip                55
+ 3 TBskip                 0
+ 4 SFskip                 0
+ 5 SBskip               -22
+ 6 Fprint        -351641929
+ 7 Nobj                   0
+ 8 Iobj                   1
+ 9 NWused                55
+10 IT Meta               22
+11 IT IMIN               26
+12 IT IMAX               28
+13 IT Bbody              30
+14 IT Ebody              54
+
+ Table Header
+ 0 Cword          123456789
+ 1 IW                   231
+ 2 TFskip                 0
+ 3 TBskip               -55
+ 4 SFskip                 0
+ 5 SBskip               -77
+ 6 Fprint        -351641929
+ 7 Nobj                   0
+ 8 Iobj                   2
+ 9 NWused                55
+10 IT Meta               22
+11 IT IMIN               26
+12 IT IMAX               28
+13 IT Bbody              30
+14 IT Ebody              54
+
+ ADDRESS    SIZE        FINGERPRINT    OBJECT
+       1     286    156-105-126-068    workspace with 2 table-sets
+      23     132    198-169-086-069    --- table-set with 2 tables
+      45      55    235-010-094-183    ------- table with 2 dimensions
+     100      55    235-010-094-183    ------- table with 2 dimensions
+     155     132    198-169-086-069    --- table-set with 2 tables
+     177      55    235-010-094-183    ------- table with 2 dimensions
+     232      55    235-010-094-183    ------- table with 2 dimensions
+  
+ Contents of table 1
+          11          12          13          14          15
+          21          22          23          24          25
+          31          32          33          34          35
+          41          42          43          44          45
+          51          52          53          54          55
+  
+ ia last  table =          232
+ ia first tbset =           23
+  
+ Check WsWipe, TsDump and TsRead
+ -------------------------------
+ Wipe  table 4            232
+ Dump  tableset 2         155
+ Wipe  tableset 2         155
+ New   tableset           155
+ Read  tableset 2         155
+ New   table 4            232
+  
+ workspace header OK =  T
+ set 2 header     OK =  T
+ tab 3 header     OK =  T
+ tab 4 header     OK =  T
+  
+ Check TbCopy
+ ------------
+ Contents of table 4 before copy
+           0           0           0           0           0
+           0           0           0           0           0
+           0           0           0           0           0
+           0           0           0           0           0
+           0           0           0           0           0
+ Copy table 1 to table 4
+ Contents of table 4 after copy
+          11          12          13          14          15
+          21          22          23          24          25
+          31          32          33          34          35
+          41          42          43          44          45
+          51          52          53          54          55
+  
+ Check WClone
+ ------------
+ Wipe  tableset 2         155
+ New   tableset           155
+ Clone set 1 to 2         155
+ Wipe  table 3+4          177
+ Clone tab 2 to 3         177
+ Clone tab 3 to 4         232
+  
+ workspace header OK =  T
+ set 2 header     OK =  T
+ tab 3 header     OK =  T
+ tab 4 header     OK =  T
+
+ ADDRESS    SIZE        FINGERPRINT    OBJECT
+       1     286    156-105-126-068    workspace with 2 table-sets
+      23     132    198-169-086-069    --- table-set with 2 tables
+      45      55    235-010-094-183    ------- table with 2 dimensions
+     100      55    235-010-094-183    ------- table with 2 dimensions
+     155     132    198-169-086-069    --- table-set with 2 tables
+     177      55    235-010-094-183    ------- table with 2 dimensions
+     232      55    235-010-094-183    ------- table with 2 dimensions
+  
+ Fingerprint and metadata table1 with address          45
+ ifp   =      -351641929
+  nd   =               2
+ lim   =               1         1         5
+ lim   =               2         1         5
+  
+ Test iws_Tpoint function on table1
+ begin table =           75          75
+ end   table =           99          99
+  
+ tsize  =           33
+ hsize  =           15
+ Wspace =    920210714
+ TbSet  =    987654321
+ Table  =    123456789
+ Yesno  =            0
+ Wsize  =          573
+ Wused  =          286
+ Nhead  =           15
+ Ntags  =            7
+ Hskip  =           22
+ Drain  =           14
+ Inull  =           15
+ Itype  =            0           1           2           3
+ WSsize =          286
+ TSsize =          132
+ TBsize =           55
+ Nsets  =            2
+ Ntabs  =            1           2
+ Ntabs  =            2           2
+ Wfprnt =  -1670807996
+ S1fp   =   -961980859
+ S2fp   =   -961980859
+ T1fp   =   -351641929
+ T2fp   =   -351641929
+ Wtag   =           16
+ Ndim   =            2
+ KARR1  =           68
+ IMIN1  =           71
+ IMAX1  =           73
+ Body1  =           75
+ Bend1  =           99

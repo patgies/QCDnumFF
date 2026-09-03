@@ -1,0 +1,11 @@
+#!/bin/bash
+
+flag=" "
+if [ $# -ne 0 ] ; then
+  flag=$1
+fi
+
+if [ -e ../lib/libhqstf.a ] ; then \rm ../lib/libhqstf.a ; fi
+gfortran -g -c -Wall -Wno-surprising $flag -O3 -Iinc src/*.f cij/*.f
+ar -r ../lib/libhqstf.a *.o
+\rm *.o

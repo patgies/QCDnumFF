@@ -1,0 +1,213 @@
+
+This is the file qcdnum-18-00-00/README: How to install QCDNUM
+
+  +---------------------------------------------------------------------+
+  |                                                                     |
+  |    If you use qcdnum, please refer to:                              |
+  |                                                                     |
+  |    M. Botje, Comput. Phys. Commun. 182(2011)490, arXiV:1005.1481    |
+  |                                                                     |
+  +---------------------------------------------------------------------+
+
+---------------------------------------------------------------------------
+0. Quick summary of the default installation with Autotools
+---------------------------------------------------------------------------
+
+     Install
+     -------
+     bash> gunzip qcdnum180000.tar.gz
+     bash> tar -xvf qcdnum180000.tar
+     bash> cd qcdnum-18-00-00
+     bash> ./configure
+     bash> make                (or make -j8 on multiple processors)
+     bash> make install        (or sudo make install)
+
+     Run testjobs
+     ------------
+     bash> cd qcdnum-18-00-00/run
+     bash> ./runtest example.f      (run Fortran job)
+     bash> ./runtest example.cc     (run C++ job)
+
+---------------------------------------------------------------------------
+1. Unpack the tarball
+---------------------------------------------------------------------------
+
+To install QCDNUM, first unpack the tarball.
+
+     bash> gunzip qcdnum180000.tar.gz
+     bash> tar -xvf qcdnum180000.tar
+
+This gives in your working directory:
+
+Directory /qcdnum-18-00-00
+          |
+          +--README        this file
+          +--LICENSE       GNU public license
+          +--  ..          whole bunch of Autotool files
+          |
+          +--CxxHead/      C++ interface header files
+          +--CxxWrap/      C++ interface for MBUTIL, QCDNUM, SPLINT, ZMSTF and HQSTF
+          |
+          +--doc/          write-ups
+          |
+          +--mbutil/inc    include files
+          |        /src    source code
+          |
+          +--wstore/inc    include files
+          |        /src    source code
+          |
+          +--qcdnum/inc    include files
+          |        /pij    splitting functions
+          |        /src    source code
+          |        /usr    user interface
+          |
+          +--splint/inc    include files
+          |        /src    source code
+          |
+          +---zmstf/inc    include files
+          |        /cij    coefficient functions
+          |        /src    source code
+          |
+          +---hqstf/inc    include files
+          |        /cij    coefficient functions
+          |        /src    source code
+          |
+          +--testjobs/     example jobs in Fortran and C++
+          |
+          +--dcards/       datacards for (some) example jobs
+          |
+          +--weights/      weight files created by example jobs
+          |
+          +--plots/        plot files created by example jobs
+          |
+          +--splines/      Spline files written by SPLINT
+          |
+          +--run/          run example jobs in Fortran or C++
+          |
+          +--BAT           tuning jobs for the BAT project 
+          |
+          +--bin/          used by Autotools
+          +--lib/          used by Autotools and makelibs
+          +--m4/           used by Autotools
+
+---------------------------------------------------------------------------
+2. Default installation with Autotools
+---------------------------------------------------------------------------
+
+Now you can install QCDNUM with Autotools.
+
+     bash> cd qcdnum-18-00-00
+     bash> ./configure
+     bash> make                (or make -j8 on multiple processors)
+     bash> make install        (or sudo make install)
+
+This installs the library /usr/local/lib/libQCDNUM.a which contains all
+of mbutil, qcdnum, zmstf and hqstf. If access rights to /usr/local are 
+restricted, you must either issue the sudo command in front of make install
+or install QCDNUM in another directory (see below).
+
+Optionally remove the intermediate files left behind by the installation:
+
+     bash> make distclean      (optional, cleanup the directory tree)
+
+The qcdnum-config command gives some useful information, e.g.:
+
+     bash> qcdnum-config --version  (QCDNUM version number)
+     bash> qcdnum-config --prefix   (installation directory)
+     bash> qcdnum-config --libdir   (path to QCDNUM library)
+     bash> qcdnum-config --incdir   (path to QCDNUM include files)
+     bash> qcdnum-config --ldflags  (compiler flags to link to QCDNUM)
+     bash> qcdnum-config --cppflags (c++ flags)
+
+See qcdnum-config --help for a list of all available options.
+
+---------------------------------------------------------------------------
+3. Installation with Autotools in another directory
+---------------------------------------------------------------------------
+
+If you want to install QCDNUM in a directory <mydir> you must run configure
+with the --prefix option (specify absolute pathname).
+
+     bash> ./configure --prefix=<mydir>
+     bash> make                            (or make -j8)
+     bash> make install                    (or sudo make install)
+     bash> make distclean                  (optional, cleanup directory)
+
+The library libQCDNUM.a can now be found in <mydir>/lib and qcdnum-config
+in <mydir>/bin. Because other scripts may depend on qcdnum-config, please 
+make sure that <mydir>/bin is in your search path.
+
+     bash> export PATH=$PATH:<mydir>/bin
+
+Depending on your system, you may also have to set other paths:
+
+     bash> export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:<mydir>/lib
+     bash> export LD_RUN_PATH=$LD_RUN_PATH:<mydir>/lib
+     bash> ..
+
+---------------------------------------------------------------------------
+4. Run testjobs in Fortran and C++
+---------------------------------------------------------------------------
+
+Once you have installed QCDNUM you can run the testjobs from
+the run directory. For instance to run example.f or example.cc do:
+
+     bash> cd qcdnum-18-00-00/run
+     bash> ./runtest example.f  or .cc   runs ../testjobs/example.f or .cc
+     bash> ./runtest path/job.f or .cc   runs        path/job.f     or .cc
+
+You can enter Fortran compiler options via an optional first argument, e.g:
+
+     bash ./runtest -fbounds-check mydir/mycode.f
+
+For a complete list of testjobs see qcdnum-18-00-00/testjobs/README
+or consult the web page http://www.nikhef.nl/user/h24/qcdnum.
+
+---------------------------------------------------------------------------
+5. How to remove the Autotools installation
+---------------------------------------------------------------------------
+
+To undo the installation do:
+
+     bash> cd qcdnum-18-00-00
+     bash> make uninstall      (or sudo make uninstall)
+     bash> make distclean
+
+---------------------------------------------------------------------------
+6. Local installation of the Fortran libraries
+---------------------------------------------------------------------------
+
+You can also install the Fortran libraries locally in qcdnum-18-00-00/lib
+in case you don't have Autotools installed, or if it gives problems.
+
+     bash> cd qcdnum-18-00-00
+     bash> ./makelibs [compiler flags]
+     bash> cd run
+     bash> ./runlocal [compiler flags] example.f          (cannot run .cc)
+     bash> ./runlocal [compiler flags] path/job.f         (cannot run .cc)
+
+The makelibs and runlocal scripts are very simple so that it is easy to
+modify them, if necessary (e.g. switch compiler from gfortran to f77).
+The C++ interface can only be installed with Autotools, and not locally.
+
+If you want to get rid of the local libraries then do:
+
+     bash> cd qcdnum-18-00-00
+     bash> ./makelibs --clean
+
+---------------------------------------------------------------------------
+7. OpenMP thread-safe compilation
+---------------------------------------------------------------------------
+
+To compile a (partially) thread-safe version of QCDNUM do:
+
+    bash> cd qcdnum-18-00-00
+    bash> ./makelibs -fopenmp  (or whatever flag needed by the compiler)
+
+Thread-safe compilation is available locally and not (yet) with Autotools.
+
+REMARK: At present several OpenMP directives are included in the QCDNUM
+        code to make it thread-safe for the xFitter project. This does not
+        mean, however, that all of QCDNUM is suited to be run in parallel
+        under OpenMP; this is something to be investigated later on.
+        Comments and suggestions are welcome.

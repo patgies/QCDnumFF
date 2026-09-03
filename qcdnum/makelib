@@ -1,0 +1,11 @@
+#!/bin/bash
+
+flag=" "
+if [ $# -ne 0 ] ; then
+  flag=$1
+fi
+
+if [ -e ../lib/libqcdnum.a ] ; then \rm ../lib/libqcdnum.a ; fi
+gfortran -g -c -Wall -Wno-surprising $flag -O3 -Iinc pij/*.f src/*.f usr/*.f
+ar -r ../lib/libqcdnum.a *.o
+\rm *.o

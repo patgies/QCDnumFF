@@ -1,0 +1,60 @@
+#!/bin/bash
+
+########################################################################
+#                                                                      #
+#  Runtest: compile and run test jobs from the run directory           #
+#                                                                      #
+#  Usage:  ./runtest path/job.f|cc --> run  path/job.f or cc           #
+#          ./runtest job.f|cc      --> run  ../testjobs/job.f or cc    #
+#                                                                      #
+########################################################################
+
+#Resolve arguments
+if [ $# -eq 1 ] ; then
+  flags=''
+  tjob=$1
+elif [ $# -eq 2 ] ; then
+  flags=$1
+  tjob=$2
+else
+  echo "Usage: ./runtest [fflags] [path]job.f | [path]job.cc"
+  exit 1
+fi
+
+#Check extension is .f or .cc
+if [ ${tjob: -2} = ".f" ] ; then
+  lang='ftn'
+elif [ ${tjob: -3} = ".cc" ] ; then
+  lang='cxx'
+else
+  echo "Please specify .f or .cc"
+  exit 1
+fi
+
+#Check if file or ../testjobs/file exists
+if [ -f "$tjob" ] ; then
+  file="$tjob"
+elif [ -f "../testjobs/$tjob" ] ; then
+  file="../testjobs/$tjob"
+else
+  echo "$tjob not found"
+  exit 2
+fi
+
+#Strip-off extension
+job="${file%.*}"
+
+if [ ${lang} = "ftn" ] ; then
+    gfortran ${flags} -Wall -Wno-surprising -O  ${job}.f -o ${job}.exe $(qcdnum-config --ldflags)
+    ./${job}.exe
+    \rm ${job}.exe
+elif [ ${lang} = "cxx" ] ; then
+    g++ ${job}.cc -o ${job}.exe $(qcdnum-config --cppflags) $(qcdnum-config --ldflags)
+    ./${job}.exe
+    \rm ${job}.exe
+else
+    echo "Cannot execute job (dont ask me why)"
+fi
+
+exit 0
+

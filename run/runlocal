@@ -1,0 +1,58 @@
+#!/bin/bash
+
+######################################################################
+#                                                                    #
+#  Compiles and links testjob, and runs it from the /run directory   #
+#                                                                    #
+#  Usage:  ./runlocal path/job.f   runs path/job.f                   #
+#          ./runlocal job.f        runs  ../testjobs/job.f           #
+#          ./runlocal --clean      cleans the ../lib directory       #
+#                                                                    #
+######################################################################
+   
+if [ $1 = "--clean" ] ; then
+  if [ -e ../lib/libmbutil.a ] ; then \rm ../lib/libmbutil.a ; fi
+  if [ -e ../lib/libwstore.a ] ; then \rm ../lib/libwstore.a ; fi
+  if [ -e ../lib/libqcdnum.a ] ; then \rm ../lib/libqcdnum.a ; fi
+  if [ -e ../lib/libzmstf.a ]  ; then \rm ../lib/libzmstf.a  ; fi
+  if [ -e ../lib/libsplint.a ] ; then \rm ../lib/libsplint.a ; fi
+  if [ -e ../lib/libhqstf.a ]  ; then \rm ../lib/libhqstf.a  ; fi
+  exit 0
+fi
+
+#Resolve arguments
+if [ $# -eq 1 ] ; then
+  flags=''
+  tjob=$1
+elif [ $# -eq 2 ] ; then
+  flags=$1
+  tjob=$2
+else
+  echo "Usage: ./runlocal [fflags] [path]job.f"
+  exit 1
+fi
+
+#Check extension is .f
+if [ ${tjob: -2} != ".f" ] ; then
+  echo "Please specify .f"
+  exit 1
+fi
+
+#Check if file or ../testjobs/file exists
+if [ -f "$tjob" ] ; then
+  file="$tjob"
+elif [ -f "../testjobs/$tjob" ] ; then
+  file="../testjobs/$tjob"
+else
+  echo "$tjob not found"
+  exit 2
+fi
+
+#Strip-off extension
+job="${file%.*}"
+
+gfortran ${flags} -Wall -Wno-surprising -O  ${job}.f -o ${job}.exe ../lib/libhqstf.a ../lib/libsplint.a ../lib/libzmstf.a ../lib/libqcdnum.a ../lib/libwstore.a ../lib/libmbutil.a
+./${job}.exe
+\rm ${job}.exe
+
+exit 0

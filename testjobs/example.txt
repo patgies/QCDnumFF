@@ -1,0 +1,41 @@
+ 
+                  ///                                  .().                 
+                 (..)                                  (--)                 
+  +----------ooO--()--Ooo--------------------------ooO------Ooo---------+   
+  |                                                                     |   
+  |    #####      ######    ######     ##    ##   ##    ##   ##     ##  |   
+  |   ##   ##    ##    ##   ##   ##    ###   ##   ##    ##   ###   ###  |   
+  |  ##     ##   ##    ##   ##    ##   ####  ##   ##    ##   #### ####  |   
+  |  ##     ##   ##         ##    ##   ## ## ##   ##    ##   ## ### ##  |   
+  |  ##     ##   ##         ##    ##   ##  ####   ##    ##   ##  #  ##  |   
+  |   ##   ##    ##    ##   ##   ##    ##   ###   ##    ##   ##     ##  |   
+  |    #####      ######    ######     ##    ##    ######    ##     ##  |   
+  |        ##                                                           |   
+  |                                                                     |   
+  |    Version 17-00/05    10-04-12         Author m.botje@nikhef.nl    |   
+  |                                                                     |   
+  +---------------------------------------------------------------------+   
+
+
+  +---------------------------------------------------------------------+   
+  |                                                                     |   
+  |    If you use QCDNUM, please refer to:                              |   
+  |                                                                     |   
+  |    M. Botje, Comput. Phys. Commun. 182(2011)490, arXiV:1005.1481    |   
+  |                                                                     |   
+  +---------------------------------------------------------------------+   
+
+ FILLWT: start unpolarised weight calculations
+ Subgrids    1 Subgrid points  100
+ Pij LO    for ospline = 2
+ Pij NLO   for ospline = 2
+ Pij NNLO  for ospline = 2
+ Aij NNLO  for ospline = 2
+ Pij LO    for ospline = 3
+ Pij NLO   for ospline = 3
+ Pij NNLO  for ospline = 3
+ Aij NNLO  for ospline = 3
+ FILLWT: weight calculations completed
+
+ x, q, CharmSea =  0.10000E-02  0.10000E+04  0.18708E+01
+ as(mz2)        =  0.11807E+00

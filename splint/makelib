@@ -1,0 +1,11 @@
+#!/bin/bash
+
+flag=" "
+if [ $# -ne 0 ] ; then
+  flag=$1
+fi
+
+if [ -e ../lib/libsplint.a ] ; then \rm ../lib/libsplint.a ; fi
+gfortran -c -Wall -Wno-surprising $flag -O3 -Iinc src/*.f
+ar -r ../lib/libsplint.a *.o
+\rm *.o

@@ -1,0 +1,46 @@
+ 
+                  ///                                  .().                 
+                 (..)                                  (--)                 
+  +----------ooO--()--Ooo--------------------------ooO------Ooo---------+   
+  |                                                                     |   
+  |    #####      ######    ######     ##    ##   ##    ##   ##     ##  |   
+  |   ##   ##    ##    ##   ##   ##    ###   ##   ##    ##   ###   ###  |   
+  |  ##     ##   ##    ##   ##    ##   ####  ##   ##    ##   #### ####  |   
+  |  ##     ##   ##         ##    ##   ## ## ##   ##    ##   ## ### ##  |   
+  |  ##     ##   ##         ##    ##   ##  ####   ##    ##   ##  #  ##  |   
+  |   ##   ##    ##    ##   ##   ##    ##   ###   ##    ##   ##     ##  |   
+  |    #####      ######    ######     ##    ##    ######    ##     ##  |   
+  |        ##                                                           |   
+  |                                                                     |   
+  |    Version 17-00/05    10-04-12         Author m.botje@nikhef.nl    |   
+  |                                                                     |   
+  +---------------------------------------------------------------------+   
+
+
+  +---------------------------------------------------------------------+   
+  |                                                                     |   
+  |    If you use QCDNUM, please refer to:                              |   
+  |                                                                     |   
+  |    M. Botje, Comput. Phys. Commun. 182(2011)490, arXiV:1005.1481    |   
+  |                                                                     |   
+  +---------------------------------------------------------------------+   
+
+ FILLWT: start unpolarised weight calculations
+ Subgrids    5 Subgrid points   22   20   18   16   60
+ Pij LO    for ospline = 2
+ Pij NLO   for ospline = 2
+ Pij NNLO  for ospline = 2
+ Aij NNLO  for ospline = 2
+ Pij LO    for ospline = 3
+ Pij NLO   for ospline = 3
+ Pij NNLO  for ospline = 3
+ Aij NNLO  for ospline = 3
+ FILLWT: weight calculations completed
+
+
+ ZMFILLW: start weight calculations   4  38   0   0
+ ZMFILLW: calculations completed
+
+ Wait: 1000 evols and 2.10^6 stfs will take ...
+
+ CPU    17.1332

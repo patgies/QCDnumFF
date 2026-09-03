@@ -1,0 +1,35 @@
+# Autotools build products
+/autom4te.cache/
+/config.log
+/config.status
+/libtool
+stamp-h1
+
+# Generated Makefiles (Makefile.am / Makefile.in are source, kept)
+**/Makefile
+
+# Files generated from .in templates
+/bin/qcdnum-config
+/CxxHead/QCDNUM/FortranWrappers.h
+
+# Compiled objects and libraries
+*.o
+*.lo
+*.la
+*.a
+.libs/
+
+# Compiled test job binaries (source .f/.cc/.dat for these are kept)
+/testjobs/kkD0
+/testjobs/kkD0cpp
+/testjobs/kkD0_scan
+
+# Runtime-generated weight caches (QCDNUM rebuilds these on first run)
+/weights/*.wgt
+
+# Generated plot output
+/plots/*.png
+
+# Editor/OS cruft
+*.swp
+.DS_Store

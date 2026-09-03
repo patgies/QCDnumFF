@@ -1,0 +1,320 @@
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION C02G(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'      
+ 
+      FACTOR = QMASS*QMASS/QPCG
+      C02G    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        C02G = (C0_LG(ETA,XI)+C0_TG(ETA,XI)) * XI / (2.*PI)
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION C12G(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C12G    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        BET  = SQRT(ETA/(1.+ETA))
+        RHO  = 1./(1.+ETA)
+        C12G = CATF * (H1_ALG(ETA,XI)+H1_ATG(ETA,XI)) +
+     +         CFTF * (H1_FLG(ETA,XI)+H1_FTG(ETA,XI)) +
+     +  CATF * BET  * (GFUN_L(ETA,XI)+GFUN_T(ETA,XI)) +
+     +  CATF * RHO  * (EFUN_LA(ETA,XI)+EFUN_TA(ETA,XI)) +
+     +  CFTF * RHO  * (EFUN_LF(ETA,XI)+EFUN_TF(ETA,XI))
+        C12G = C12G*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     =============================================
+      DOUBLE PRECISION FUNCTION C1B2G(X,QPCG,QMASS)
+C     =============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C1B2G    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI    = 1./FACTOR
+        ETA   = XI * (1.-X)/(4.*X) - 1.
+        BET   = SQRT(ETA/(1.+ETA))
+        RHO   = 1./(1.+ETA)
+        C1B2G = CATF * (H1BAR_LG(ETA,XI)+H1BAR_TG(ETA,XI)) +
+     +   CATF * BET  * (GBAR_L(ETA,XI)+GBAR_T(ETA,XI)) +
+     +   CATF * RHO  * (EBAR_LA(ETA,XI)+EBAR_TA(ETA,XI))
+        C1B2G = C1B2G*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION C12Q(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C12Q    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        BET  = SQRT(ETA/(1.+ETA))
+        BET3 = BET*BET*BET
+        RHO  = 1./(1.+ETA)
+        C12Q = CFTF * (H1_HLQ(ETA,XI)+H1_HTQ(ETA,XI)) +
+     +  CFTF * BET3 * (GFUN_L(ETA,XI)+GFUN_T(ETA,XI))
+        C12Q = C12Q*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     =============================================
+      DOUBLE PRECISION FUNCTION C1B2Q(X,QPCG,QMASS)
+C     =============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C1B2Q    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI    = 1./FACTOR
+        ETA   = XI * (1.-X)/(4.*X) - 1.
+        BET   = SQRT(ETA/(1.+ETA))
+        BET3  = BET*BET*BET
+        RHO   = 1./(1.+ETA)
+        C1B2Q = CFTF * (H1BAR_HLQ(ETA,XI)+H1BAR_HTQ(ETA,XI)) +
+     +   CFTF * BET3 * (GBAR_L(ETA,XI)+GBAR_T(ETA,XI))
+        C1B2Q = C1B2Q*4.*PI/FACTOR
+      ENDIF
+
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION D12Q(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      D12Q    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        IF(QPCG.LE.1.5) THEN
+          D12Q = CFTF * (H1F_LLQ(ETA,XI)+H1F_LTQ(ETA,XI))
+        ELSE
+          D12Q = CFTF * (H1_LLQ(ETA,XI)+H1_LTQ(ETA,XI))
+        ENDIF
+        D12Q = D12Q*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     =============================================
+      DOUBLE PRECISION FUNCTION D1B2Q(X,QPCG,QMASS)
+C     =============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      D1B2Q    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        IF(QPCG.LE.1.5) THEN
+          D1B2Q = CFTF * H1BAR_LTQ(ETA,XI)
+        ELSE
+          D1B2Q = 0.
+        ENDIF
+        D1B2Q = D1B2Q*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION C0LG(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      DATA PI       /3.14159265359/
+ 
+      FACTOR = QMASS*QMASS/QPCG
+      C0LG    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        C0LG = C0_LG(ETA,XI) * XI / (2.*PI)
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION C1LG(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C1LG    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        BET  = SQRT(ETA/(1.+ETA))
+        RHO  = 1./(1.+ETA)
+        C1LG = CATF * H1_ALG(ETA,XI) +
+     +         CFTF * H1_FLG(ETA,XI) +
+     +  CATF * BET  * GFUN_L(ETA,XI) +
+     +  CATF * RHO  * EFUN_LA(ETA,XI) +
+     +  CFTF * RHO  * EFUN_LF(ETA,XI)
+        C1LG = C1LG*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     =============================================
+      DOUBLE PRECISION FUNCTION C1BLG(X,QPCG,QMASS)
+C     =============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C1BLG    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI    = 1./FACTOR
+        ETA   = XI * (1.-X)/(4.*X) - 1.
+        BET   = SQRT(ETA/(1.+ETA))
+        RHO   = 1./(1.+ETA)
+        C1BLG = CATF * H1BAR_LG(ETA,XI) +
+     +   CATF * BET  * GBAR_L(ETA,XI) +
+     +   CATF * RHO  * EBAR_LA(ETA,XI)
+        C1BLG = C1BLG*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION C1LQ(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C1LQ    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        BET  = SQRT(ETA/(1.+ETA))
+        BET3 = BET*BET*BET
+        RHO  = 1./(1.+ETA)
+        C1LQ = CFTF * H1_HLQ(ETA,XI) +
+     +  CFTF * BET3 * GFUN_L(ETA,XI)
+        C1LQ = C1LQ*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     =============================================
+      DOUBLE PRECISION FUNCTION C1BLQ(X,QPCG,QMASS)
+C     =============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      C1BLQ    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI    = 1./FACTOR
+        ETA   = XI * (1.-X)/(4.*X) - 1.
+        BET   = SQRT(ETA/(1.+ETA))
+        BET3  = BET*BET*BET
+        RHO   = 1./(1.+ETA)
+        C1BLQ = CFTF * H1BAR_HLQ(ETA,XI) +
+     +   CFTF * BET3 * GBAR_L(ETA,XI)
+        C1BLQ = C1BLQ*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     ============================================
+      DOUBLE PRECISION FUNCTION D1LQ(X,QPCG,QMASS)
+C     ============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      include 'ffcons.inc'
+
+      FACTOR = QMASS*QMASS/QPCG
+      D1LQ    = 0.
+      IF(X.LT.(1./(1.+4.*FACTOR))) THEN
+        XI   = 1./FACTOR
+        ETA  = XI * (1.-X)/(4.*X) - 1.
+        IF(QPCG.LE.1.5) THEN
+          D1LQ = CFTF * H1F_LLQ(ETA,XI)
+        ELSE
+          D1LQ = CFTF * H1_LLQ(ETA,XI)
+        ENDIF
+        D1LQ = D1LQ*4.*PI/FACTOR
+      ENDIF
+ 
+      RETURN
+      END
+ 
+C     =============================================
+      DOUBLE PRECISION FUNCTION D1BLQ(X,QPCG,QMASS)
+C     =============================================
+
+      IMPLICIT DOUBLE PRECISION (A-H,O-Z)
+ 
+      DDUM1 = X      !avoid compiler warning
+      DDUM2 = QPCG
+      DDUM3 = QMASS
+      D1BLQ = 0.
+ 
+      RETURN
+      END

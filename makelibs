@@ -1,0 +1,27 @@
+#!/bin/bash
+
+if [ $# -ne 0 ] && [ $1 = "--clean" ] ; then
+  echo -n "Delete all QCDNUM libraries ... "
+  if [ -e lib/libmbutil.a ] ; then \rm lib/libmbutil.a ; fi
+  if [ -e lib/libwstore.a ] ; then \rm lib/libwstore.a ; fi
+  if [ -e lib/libqcdnum.a ] ; then \rm lib/libqcdnum.a ; fi
+  if [ -e lib/libzmstf.a ]  ; then \rm lib/libzmstf.a  ; fi
+  if [ -e lib/libsplint.a ] ; then \rm lib/libsplint.a ; fi
+  if [ -e lib/libhqstf.a ]  ; then \rm lib/libhqstf.a  ; fi
+  echo "done"
+  exit 0
+fi
+
+flag=" "
+if [ $# -ne 0 ] ; then
+  flag=$1
+fi
+
+echo "Make all QCDNUM libraries ... be patient"
+cd    mbutil ; ./makelib $flag
+cd ../wstore ; ./makelib $flag
+cd ../qcdnum ; ./makelib $flag
+cd ../zmstf  ; ./makelib $flag
+cd ../splint ; ./makelib $flag
+cd ../hqstf  ; ./makelib $flag
+cd ..

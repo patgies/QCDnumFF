@@ -1,0 +1,2 @@
+
+      common /hqflags/ ihqini, ihqpdf
