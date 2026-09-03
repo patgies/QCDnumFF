@@ -12,13 +12,13 @@ Original source and documentation: https://www.nikhef.nl/~h24/qcdnum/
 
 ## Fragmentation function evolution
 
-`testjobs/kkD0.f`, `kkD0.cpp`, `kkD0_scan.f` — time-like evolution of the Kniehl-Kramer D0 meson fragmentation function at
-LO, following:
+`testjobs/kkD0.f`, `kkD0.cpp`, `kkD0_scan.f`: time-like evolution of the Kniehl-Kramer D0 meson fragmentation function at
+LO following:
 
 > B.A. Kniehl and G. Kramer, "Charmed-Hadron Fragmentation Functions from
 > CERN LEP1 Revisited", DESY 06-102, [arXiv:hep-ph/0607306](https://arxiv.org/abs/hep-ph/0607306)
 
-The Kniehl-Kramer paper specifies two separate non-perturbative inputs — a
+The Kniehl-Kramer paper specifies two separate non-perturbative inputs: a
 charm-quark FF (Peterson form) at `mu0 = mc` and a bottom-quark FF (power
 law) at `mu0 = mb`. Since DGLAP evolution is linear, each is evolved
 separately on the same grid and summed:
@@ -34,7 +34,7 @@ plotting.
 
 ## Build & run
 
-Full install instructions (Autotools, local build, OpenMP) are in
+Full install instructions are in
 [`README`](README). Quick start:
 
 ```bash
