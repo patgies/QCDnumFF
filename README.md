@@ -12,8 +12,7 @@ Original source and documentation: https://www.nikhef.nl/~h24/qcdnum/
 
 ## Fragmentation function evolution
 
-`testjobs/kkD0.f`, `kkD0.cpp`, `kkD0_scan.f` — time-like (fragmentation
-function) evolution of the Kniehl-Kramer D0 meson fragmentation function at
+`testjobs/kkD0.f`, `kkD0.cpp`, `kkD0_scan.f` — time-like evolution of the Kniehl-Kramer D0 meson fragmentation function at
 LO, following:
 
 > B.A. Kniehl and G. Kramer, "Charmed-Hadron Fragmentation Functions from
@@ -29,7 +28,7 @@ D_total(x,Q) = D_c-evolved(x,Q) + D_b-evolved(x,Q)   for Q >= mb
 D_total(x,Q) = D_c-evolved(x,Q)                      for mc <= Q < mb
 ```
 
-`kkD0_scan.f` runs the same physics as `kkD0.f` but scans `D_c^D0(x,Q2)`
+`kkD0_scan.f` scans `D_c^D0(x,Q2)`
 over `x` at several `Q` values and writes the result to a data file for
 plotting.
 
@@ -40,15 +39,15 @@ Full install instructions (Autotools, local build, OpenMP) are in
 
 ```bash
 ./configure
-make                # or make -j8
-make install        # or sudo make install
+make               
+make install        
 
 cd run
-./runtest kkD0.f        # or kkD0.cpp / kkD0_scan.f
+./runtest kkD0.f       
 ```
 
 ## License
 
 QCDNUM is distributed under the GNU General Public License v3 — see
-[`COPYING`](COPYING) and [`LICENCE`](LICENCE). Custom additions in this
-repo follow the same terms.
+[`COPYING`](COPYING) and [`LICENCE`](LICENCE). This
+repository follow the same terms.
