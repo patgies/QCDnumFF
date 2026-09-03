@@ -2,10 +2,7 @@
 
 Working copy of [QCDNUM](https://www.nikhef.nl/~h24/qcdnum/) used for evolving fragmentation functions (FF). 
 
-This repo starts from the unmodified QCDNUM 18.00.00 source and include scripts to evolve specific fragmentation functions.
-
-QCDNUM is developed and maintained by M. Botje. If you use QCDNUM, please
-cite:
+QCDNUM is developed and maintained by M. Botje.
 
 > M. Botje, *Comput. Phys. Commun.* 182 (2011) 490, [arXiv:1005.1481](https://arxiv.org/abs/1005.1481)
 
