@@ -24,8 +24,8 @@ law) at `mu0 = mb`. Since DGLAP evolution is linear, each is evolved
 separately on the same grid and summed:
 
 ```
-D_total(x,Q) = D_c-evolved(x,Q) + D_b-evolved(x,Q)   for Q >= mb
-D_total(x,Q) = D_c-evolved(x,Q)                      for mc <= Q < mb
+D_total(x,Q2) = D_c-evolved(x,Q2) + D_b-evolved(x,Q2)   for Q2 >= mb^2
+D_total(x,Q2) = D_c-evolved(x,Q2)                       for mc^2 <= Q2 < mb^2
 ```
 
 `kkD0_scan.f` scans `D_c^D0(x,Q2)`
